@@ -3,7 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { addTransactionalDataSource } from 'typeorm-transactional';
 import { DataSource } from 'typeorm';
-import { StoriesModule } from './stories/stories.module';
+import { StoryModule } from './story/story.module';
+import { Story } from './story/entities/story.entity';
+import { HashTag } from './story/entities/hashtag.entity';
 
 @Module({
   imports: [
@@ -18,6 +20,7 @@ import { StoriesModule } from './stories/stories.module';
           password: process.env.DB_PASSWORD,
           database: process.env.DB_DATABASE,
           synchronize: process.env.DB_SYNC === 'true',
+          entities: [Story, HashTag],
           timezone: 'Z',
         };
       },
@@ -29,7 +32,7 @@ import { StoriesModule } from './stories/stories.module';
         return addTransactionalDataSource(new DataSource(options));
       },
     }),
-    StoriesModule,
+    StoryModule,
   ],
   controllers: [],
   providers: [],
