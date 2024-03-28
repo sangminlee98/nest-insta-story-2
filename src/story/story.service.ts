@@ -5,6 +5,11 @@ import { Repository } from 'typeorm';
 import { HashTag } from './entities/hashtag.entity';
 import { CreateStoryRequestDto } from './dto/request/create-story-request.dto';
 import { CreateStoryResponseDto } from './dto/response/create-story-response.dto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import {
+  PaginationResult,
+  createPaginationResult,
+} from 'src/common/utils/pagination.util';
 
 @Injectable()
 export class StoryService {
@@ -53,5 +58,35 @@ export class StoryService {
     response.hashtags = entity.hashtags.map((hashtag) => hashtag.hashtag);
 
     return response;
+  }
+
+  async getStories(
+    dto: PaginationDto,
+  ): Promise<PaginationResult<CreateStoryResponseDto>> {
+    const [results, total] = await this.storyRepository
+      .createQueryBuilder('story')
+      .leftJoinAndSelect('story.hashtags', 'hashtag')
+      .where(
+        'story.createdAt > DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL story.validTime HOUR)',
+      )
+      .skip((dto.page - 1) * dto.limit)
+      .take(dto.limit)
+      .getManyAndCount();
+
+    const response = new CreateStoryResponseDto();
+
+    const data = results.map((story) => {
+      response.id = story.id;
+      response.createdAt = story.createdAt;
+      response.validTime = story.validTime;
+      response.title = story.title;
+      response.author = story.author;
+      response.image = story.image;
+      response.hashtags = story.hashtags.map((hashtag) => hashtag.hashtag);
+
+      return response;
+    });
+
+    return createPaginationResult(data, dto.page, dto.limit, total);
   }
 }
