@@ -26,7 +26,7 @@ export class StoryService {
       uniqueHashtags.map(async (tag) => {
         let hashtag = await this.hashtagRepository
           .createQueryBuilder('ht')
-          .where('ht.tag = :tag', { tag })
+          .where('ht.hashtag = :tag', { tag })
           .getOne();
 
         if (!hashtag) {
